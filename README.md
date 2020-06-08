@@ -14,10 +14,18 @@ A user must be able to set up a server from their computer to run from their mac
 This is made using .JSON, .ENV, and Javascript
 
 ## Change Log
-<!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
-
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
+4.30pm, got the locations and the weather with the time to correctly render to the page. 
 
 ## Credits and Collaborations
-<!-- Give credit (and a link) to other people or resources that helped you build this application. -->
--->
+Worked with Michael Revfem to get this application to work. 
+
+
+Number and name of feature: Feature 1 & 2 
+
+Estimate of time needed to complete: six hours
+
+Start time: 13.00pm
+
+Finish time: 16.00
+
+Actual time needed to complete: 3.5 hours
