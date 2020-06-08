@@ -16,20 +16,6 @@ app.use(cors());
 // bring in the PORT by using process.env.variable name
 const PORT = process.env.PORT || 3001;
 
-// app.get('/', (request, response) => {
-//   console.log('hello out there');
-//   response.status(200).send('I like pizza');
-// });
-
-// app.get('/bananas', (request, response) => {
-//   console.log('it is Monday');
-//   response.status(200).send('tell me about it');
-// });
-
-// app.get('/pizza', (request, response) => {
-//   response.status(200).send('I am on the pizza route');
-// });
-
 app.get('/location', (request, response) => {
   try{
     // query: { city: 'seattle' },
@@ -41,12 +27,6 @@ app.get('/location', (request, response) => {
     let returnObj = new Location(search_query, geoData[0]);
 
     console.log(returnObj);
-    // let returnObj = {
-    //   search_query: search_query,
-    //   formatted_query: geoData[0].display_name,
-    //   latitude: geoData[0].lat,
-    //   longitude: geoData[0].lon
-    // }
 
     response.status(200).send(returnObj);
 
@@ -64,10 +44,6 @@ function Location(searchQuery, obj){
   this.longitude = obj.lon;
 }
 
-app.get('*', (request, response) => {
-  response.status(404).send('sorry, this route does not exist');
-})
-
 // turn on the lights - move into the house - start the server
 app.listen(PORT, () => {
   console.log(`listening on ${PORT}`);
@@ -75,23 +51,16 @@ app.listen(PORT, () => {
 
 app.get('/weather', (request, response) => {
   try{
-    // query: { city: 'seattle' },
-    console.log(request.data.valid_date);
-    let valid_date = request.data.valid_date;
+
 
     let weatherData = require('./data/weather.json');
 
-    let returnObj = new Weather(city_name, weatherData[0]);
+    let weatherArr = [];
 
-    console.log(returnObj);
-    // let returnObj = {
-    //   search_query: search_query,
-    //   formatted_query: geoData[0].display_name,
-    //   latitude: geoData[0].lat,
-    //   longitude: geoData[0].lon
-    // }
+    console.log('The weather is', weatherArr);
+    weatherData.data.forEach(weatherLoop => weatherArr.push(new Weather(weatherLoop)));
 
-    response.status(200).send(returnObj);
+    response.status(200).send(weatherArr);
 
   } catch(err){
     console.log('ERROR', err);
@@ -99,10 +68,12 @@ app.get('/weather', (request, response) => {
   }
 
 })
+app.get('*', (request, response) => {
+  response.status(404).send('sorry, this route does not exist');
+})
 
-function Weather(searchQuery, obj){
-  this.city_name = searchQuery;
+function Weather(obj){
   // this.formatted_query = obj.display_name;
-  this.data.weather.description = obj.description;
-  this.data.valid_date = obj.date;
+  this.forecast = obj.weather.description;
+  this.time = obj.valid_date;
 }
