@@ -1,0 +1,25 @@
+{
+  "name": "lab-06",
+  "version": "1.0.0",
+  "description": "lab-06 creating features for City Explorer",
+  "main": "server.js",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christopherhamersly/lab-06.git"
+  },
+  "author": "Chris Hamersly",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/christopherhamersly/lab-06/issues"
+  },
+  "homepage": "https://github.com/christopherhamersly/lab-06#readme"
+}
