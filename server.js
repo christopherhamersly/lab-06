@@ -47,7 +47,7 @@ function Location(searchQuery, obj){
 }
 
 app.get('*', (request, response) => {
-  response.status(404).send('sorry, this route does not exist');
+  response.status(404).send('sorry, this thing route does not exist');
 })
 
 // turn on the lights - move into the house - start the server
