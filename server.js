@@ -51,14 +51,15 @@ app.listen(PORT, () => {
 
 app.get('/weather', (request, response) => {
   try{
-
-
     let weatherData = require('./data/weather.json');
+    // console.log(`${weatherData.data[0].valid_date}`);
+    const weatherArr = weatherData.data.map(value => {
+      return new Weather(value);
 
-    let weatherArr = [];
-
-    console.log('The weather is', weatherArr);
-    weatherData.data.forEach(weatherLoop => weatherArr.push(new Weather(weatherLoop)));
+    // console.log(`${value[0]}`)
+    });
+    console.log (`${weatherArr}`);
+    // weatherData.data.forEach(weatherLoop => weatherArr.push(new Weather(weatherLoop)));
 
     response.status(200).send(weatherArr);
 
@@ -75,5 +76,5 @@ app.get('*', (request, response) => {
 function Weather(obj){
   // this.formatted_query = obj.display_name;
   this.forecast = obj.weather.description;
-  this.time = obj.valid_date;
+  this.time = new Date(obj.valid_date).toDateString();
 }
