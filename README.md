@@ -26,6 +26,10 @@ Estimate of time needed to complete: six hours
 
 Start time: 13.00pm
 
-Finish time: 16.00
+Finish time: 17.30
 
-Actual time needed to complete: 3.5 hours
+Actual time needed to complete: 2.5 hours
+
+
+
+![Whiteboard lab07](image/Lab07-whiteboard.png)
