@@ -1,34 +1,26 @@
 'use strict';
 
-// express library sets up our server
 const express = require('express');
-// initalizes our express library into our variable called app
-const app = express();
-
-// dotenv lets us get our secrets from our .env file
+const cors = require('cors');
+const superagent = require('superagent')
 require('dotenv').config();
 
-// bodyguard of our server - tells who is ok to send data to
-const cors = require('cors');
+const app = express();
+const PORT = process.env.PORT || 3001;
+
 app.use(cors());
 
 
-// bring in the PORT by using process.env.variable name
-const PORT = process.env.PORT || 3001;
-
 app.get('/location', (request, response) => {
   try{
-    // query: { city: 'seattle' },
-    console.log(request.query.city);
-    let search_query = request.query.city;
+    let city = request.query.city;
 
-    let geoData = require('./data/location.json');
+    let url =  `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
 
-    let returnObj = new Location(search_query, geoData[0]);
-
-    console.log(returnObj);
-
-    response.status(200).send(returnObj);
+    superagent.get(url).then(resultFromSuperAgent => {
+      let finalObj = new Location(city, resultFromSuperAgent.body[0])
+      response.status(200).send(finalObj);
+    })
 
   } catch(err){
     console.log('ERROR', err);
@@ -36,7 +28,6 @@ app.get('/location', (request, response) => {
   }
 
 })
-
 function Location(searchQuery, obj){
   this.search_query = searchQuery;
   this.formatted_query = obj.display_name;
@@ -45,35 +36,65 @@ function Location(searchQuery, obj){
 }
 
 // turn on the lights - move into the house - start the server
-app.listen(PORT, () => {
-  console.log(`listening on ${PORT}`);
-})
 
 app.get('/weather', (request, response) => {
   try{
+    let search_query = request.query.search_query;
+    let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${search_query}&key=${process.env.WEATHER_DATA_API_KEY}&days=8`;
 
-
-    let weatherData = require('./data/weather.json');
-
-    let weatherArr = [];
-
-    console.log('The weather is', weatherArr);
-    weatherData.data.forEach(weatherLoop => weatherArr.push(new Weather(weatherLoop)));
-
-    response.status(200).send(weatherArr);
-
+    superagent.get(url).then(resultsFromSuperAgent => {
+      const data = resultsFromSuperAgent.body.data;
+      const weatherResults = data.map(value => new Weather(value));
+      response.status(200).send(weatherResults);
+    })
   } catch(err){
-    console.log('ERROR', err);
-    response.status(500).send('sorry, we messed up');
+    response.status(500).send('sorry there is an error on weather');
   }
-
+  function Weather(obj){
+    this.forecast = obj.weather.description
+    this.time = new Date(obj.datetime).toDateString();
+  }
 })
-app.get('*', (request, response) => {
-  response.status(404).send('sorry, this route does not exist');
-})
 
-function Weather(obj){
-  // this.formatted_query = obj.display_name;
-  this.forecast = obj.weather.description;
-  this.time = obj.valid_date;
+
+
+app.get('/trails', (request, response) => {
+  try {
+    const {latitude, longitude} = request.query;
+    const key = process.env.HIKING_PROJECT_API_KEY;
+    const url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=10&key=${key}`;
+    console.log(request.query);
+
+    superagent.get(url)
+      .then(resultsFromSuperAgent => {
+        const data = resultsFromSuperAgent.body.trails;
+        const results = data.map(item => new Trail(item));
+        console.log(results);
+        response.status(200).send(results);
+      })
+  } catch(err) {
+    console.log('ERROR', err);
+    response.status(500).send('sorry, we meesed up');
+  }
+})
+function Trail(obj){
+  this.name = obj.name;
+  this.location = obj.location;
+  this.length = obj.length;
+  this.stars = obj.stars;
+  this.star_votes = obj.starVotes;
+  this.summary = obj.summary;
+  this.trail_url = obj.url;
+  this.conditions = obj.conditionDetails;
+  this.condition_date = new Date(obj.condtionDate).toDateString;
+  this.condition_time = obj.conditionDate;
+
 }
+
+
+app.get('*', (request, response) => {
+  response.status(404).send('sorry, this route does not exist here');
+})
+app.listen(PORT, () => {
+  console.log(`listening on ${PORT}`);
+})
