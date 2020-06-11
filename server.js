@@ -1,33 +1,60 @@
-'use strict';
+
+'use strict'
 
 const express = require('express');
+const app = express ();
 const cors = require('cors');
-const superagent = require('superagent')
+const superagent = require ('superagent')
+const pg = require('pg');
 require('dotenv').config();
 
-const app = express();
-const PORT = process.env.PORT || 3001;
-
 app.use(cors());
+const PORT = process.env.PORT || 3000;
+
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('error', err => console.error(err));
+
+
+client.connect()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`listening on ${PORT}`);
+    })
+  })
+
 
 
 app.get('/location', (request, response) => {
   try{
     let city = request.query.city;
-
     let url =  `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
 
-    superagent.get(url).then(resultFromSuperAgent => {
-      let finalObj = new Location(city, resultFromSuperAgent.body[0])
-      response.status(200).send(finalObj);
-    })
+    let sqlQuery = 'SELECT * FROM location WHERE search_query =$1;'
+    let safeValue = [city];
 
-  } catch(err){
+    client.query(sqlQuery, safeValue)
+      .then(sqlResults =>{
+        console.log(sqlResults);
+        if (sqlResults.rowCount){
+          response.status(200).send(sqlResults.rows[0]);
+        } else {
+          superagent.get(url).then(resultsFromSuperAgent =>{
+            let returnTown = new Location(city, resultsFromSuperAgent.body[0]);
+
+            let sqlQuery = 'INSERT INTO location (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
+            let safeValue = [city, returnTown.formatted_query, returnTown.latitude, returnTown.longitude];
+            client.query(sqlQuery, safeValue)
+            console.log(returnTown);
+            response.status(200).send(returnTown);
+          })
+        }})
+
+  } catch(err) {
     console.log('ERROR', err);
-    response.status(500).send('sorry, we messed up');
+    response.status(500).send('sorry, there is an error on location');
   }
+});
 
-})
 function Location(searchQuery, obj){
   this.search_query = searchQuery;
   this.formatted_query = obj.display_name;
@@ -35,7 +62,7 @@ function Location(searchQuery, obj){
   this.longitude = obj.lon;
 }
 
-// turn on the lights - move into the house - start the server
+
 
 app.get('/weather', (request, response) => {
   try{
@@ -56,8 +83,6 @@ app.get('/weather', (request, response) => {
   }
 })
 
-
-
 app.get('/trails', (request, response) => {
   try {
     const {latitude, longitude} = request.query;
@@ -77,6 +102,7 @@ app.get('/trails', (request, response) => {
     response.status(500).send('sorry, we meesed up');
   }
 })
+
 function Trail(obj){
   this.name = obj.name;
   this.location = obj.location;
@@ -86,15 +112,12 @@ function Trail(obj){
   this.summary = obj.summary;
   this.trail_url = obj.url;
   this.conditions = obj.conditionDetails;
-  this.condition_date = new Date(obj.condtionDate).toDateString;
-  this.condition_time = obj.conditionDate;
-
+  this.condition_date = new Date(obj.condtionDate).toDateString();
+  this.condition_time = obj.conditionDate.slice(11);
 }
 
 
 app.get('*', (request, response) => {
   response.status(404).send('sorry, this route does not exist here');
 })
-app.listen(PORT, () => {
-  console.log(`listening on ${PORT}`);
-})
+
