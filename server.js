@@ -9,18 +9,11 @@ const pg = require('pg');
 require('dotenv').config();
 
 app.use(cors());
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const client = new pg.Client(process.env.DATABASE_URL);
 client.on('error', err => console.error(err));
 
-
-client.connect()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`listening on ${PORT}`);
-    })
-  })
 
 
 
@@ -34,18 +27,15 @@ app.get('/location', (request, response) => {
 
     client.query(sqlQuery, safeValue)
       .then(sqlResults =>{
-        console.log(sqlResults);
         if (sqlResults.rowCount){
           response.status(200).send(sqlResults.rows[0]);
         } else {
           superagent.get(url).then(resultsFromSuperAgent =>{
-            let returnTown = new Location(city, resultsFromSuperAgent.body[0]);
-
+            let citySearch = new Location(city, resultsFromSuperAgent.body[0]);
             let sqlQuery = 'INSERT INTO location (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
-            let safeValue = [city, returnTown.formatted_query, returnTown.latitude, returnTown.longitude];
+            let safeValue = [city, citySearch.formatted_query, citySearch.latitude, citySearch.longitude];
             client.query(sqlQuery, safeValue)
-            console.log(returnTown);
-            response.status(200).send(returnTown);
+            response.status(200).send(citySearch);
           })
         }})
 
@@ -75,28 +65,26 @@ app.get('/weather', (request, response) => {
       response.status(200).send(weatherResults);
     })
   } catch(err){
+    console.log('ERROR', err);
     response.status(500).send('sorry there is an error on weather');
   }
   function Weather(obj){
     this.forecast = obj.weather.description
-    this.time = new Date(obj.datetime).toDateString();
+    this.time = new Date(obj.valid_date).toDateString();
   }
 })
 
 app.get('/trails', (request, response) => {
   try {
     const {latitude, longitude} = request.query;
-    const key = process.env.HIKING_PROJECT_API_KEY;
-    const url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=10&key=${key}`;
+    const url = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&maxDistance=10&key=${process.env.HIKING_PROJECT_API_KEY}`;
     console.log(request.query);
 
-    superagent.get(url)
-      .then(resultsFromSuperAgent => {
-        const data = resultsFromSuperAgent.body.trails;
-        const results = data.map(item => new Trail(item));
-        console.log(results);
-        response.status(200).send(results);
-      })
+    superagent.get(url).then(resultsFromSuperAgent => {
+      const data = resultsFromSuperAgent.body.trails;
+      const results = data.map(item => new Trail(item));
+      response.status(200).send(results);
+    })
   } catch(err) {
     console.log('ERROR', err);
     response.status(500).send('sorry, we meesed up');
@@ -120,4 +108,11 @@ function Trail(obj){
 app.get('*', (request, response) => {
   response.status(404).send('sorry, this route does not exist here');
 })
+
+client.connect()
+  .then(()=> {
+    app.listen(PORT, () =>{
+      console.log(`hello, you are on ${PORT}`);
+    })
+  })
 
