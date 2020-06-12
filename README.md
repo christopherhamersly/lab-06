@@ -60,3 +60,23 @@ Finish time: 21.00
 Actual time needed to complete: 2 hourse
 
 ![Whiteboard lab08](image/Lab08.png)
+
+# Lab 09
+
+Number and name of feature: Getting movies and yelp to populate onto the HTML page
+
+Estimate of time needed to complete: 5 hours
+
+Start time: 13.00
+
+Finish time: 17.00
+
+Actual time needed to complete: 2 hours
+
+***
+
+
+
+Actual time needed to complete: 2 hours
+![Whiteboard lab09](image/Lab09.png)
+
